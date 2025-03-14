@@ -28,19 +28,11 @@ class PlaylistsService {
 
   async getPlaylists(userId) {
     const query = {
-      text: 'SELECT playlists.id, playlists.name, users.username AS owner FROM playlists JOIN users ON users.id = playlists.owner WHERE playlists.owner = $1',
+      text: 'SELECT playlists.id, playlists.name, users.username FROM playlists LEFT JOIN users ON users.id = playlists.owner LEFT JOIN collaborations ON collaborations.playlist_id = playlists.id WHERE playlists.owner = $1 OR collaborations.user_id = $1',
       values: [userId],
     };
 
     const result = await this._pool.query(query);
-    if (!result.rowCount) {
-      const queryCollab = {
-        text: 'SELECT playlists.id, playlists.name, users.username FROM playlists JOIN collaborations ON collaborations.playlist_id = playlists.id JOIN users ON users.id = playlists.owner WHERE collaborations.user_id = $1',
-        values: [userId],
-      };
-      const resultCollab = await this._pool.query(queryCollab);
-      return resultCollab.rows;
-    }
 
     return result.rows;
   }
